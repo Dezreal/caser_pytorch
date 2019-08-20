@@ -141,7 +141,7 @@ class Recommender(object):
                                                     negatives.to(self._device))
 
             epoch_loss = 0.0
-            self._net.load_state_dict(torch.load('state_dict'))
+            self._net.load_state_dict(torch.load('state_dict', map_location=torch.device('cpu')))
 
             for (minibatch_num,
                  (batch_users,
@@ -296,7 +296,7 @@ if __name__ == '__main__':
     parser.add_argument('--learning_rate', type=float, default=1e-3)
     parser.add_argument('--l2', type=float, default=1e-6)
     parser.add_argument('--neg_samples', type=int, default=3)
-    parser.add_argument('--use_cuda', type=str2bool, default=True)
+    parser.add_argument('--use_cuda', type=str2bool, default=False)
 
     config = parser.parse_args()
 
