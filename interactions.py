@@ -81,16 +81,17 @@ class Interactions(object):
         row = self.user_ids
         col = self.item_ids
         data = np.ones(len(self))
-
-        return sp.coo_matrix((data, (row, col)),
+        coo = sp.coo_matrix((data, (row, col)),
                              shape=(self.num_users, self.num_items))
+        return coo
 
     def tocsr(self):
         """
         Transform to a scipy.sparse CSR matrix.
         """
 
-        return self.tocoo().tocsr()
+        csr =  self.tocoo().tocsr()
+        return csr
 
     def to_sequence(self, sequence_length=5, target_length=1):
         """

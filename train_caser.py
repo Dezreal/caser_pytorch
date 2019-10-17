@@ -46,7 +46,8 @@ class Recommender(object):
                  neg_samples=None,
                  learning_rate=None,
                  use_cuda=False,
-                 model_args=None):
+                 model_args=None,
+                 eval_per_epoch=None):
 
         # model related
         self._num_items = None
@@ -61,6 +62,7 @@ class Recommender(object):
         self._l2 = l2
         self._neg_samples = neg_samples
         self._device = torch.device("cuda" if use_cuda else "cpu")
+        self._eval_per_epoch = eval_per_epoch
 
         # rank evaluation related
         self.test_sequence = None
@@ -141,7 +143,7 @@ class Recommender(object):
                                                     negatives.to(self._device))
 
             epoch_loss = 0.0
-            self._net.load_state_dict(torch.load('state_dict', map_location=torch.device('cpu')))
+            #self._net.load_state_dict(torch.load('state_dict', map_location=torch.device('cpu')))
 
             for (minibatch_num,
                  (batch_users,
@@ -179,7 +181,7 @@ class Recommender(object):
             epoch_loss /= minibatch_num + 1
 
             t2 = time()
-            if verbose and (epoch_num + 1) % 10 == 0:
+            if verbose and (epoch_num + 1) % self._eval_per_epoch == 0:
                 precision, recall, mean_aps = evaluate_ranking(self, test, train, k=[1, 5, 10])
                 output_str = "Epoch %d [%.1f s]\tloss=%.4f, map=%.4f, " \
                              "prec@1=%.4f, prec@5=%.4f, prec@10=%.4f, " \
@@ -290,13 +292,14 @@ if __name__ == '__main__':
     parser.add_argument('--L', type=int, default=5)
     parser.add_argument('--T', type=int, default=3)
     # train arguments
-    parser.add_argument('--n_iter', type=int, default=20)
+    parser.add_argument('--n_iter', type=int, default=8)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--batch_size', type=int, default=512)
     parser.add_argument('--learning_rate', type=float, default=1e-3)
     parser.add_argument('--l2', type=float, default=1e-6)
     parser.add_argument('--neg_samples', type=int, default=3)
     parser.add_argument('--use_cuda', type=str2bool, default=False)
+    parser.add_argument('--eval_per_epoch', type=int, default=3)
 
     config = parser.parse_args()
 
@@ -312,6 +315,8 @@ if __name__ == '__main__':
     model_config = model_parser.parse_args()
     model_config.L = config.L
 
+    t1 = time()
+
     # set seed
     set_seed(config.seed,
              cuda=config.use_cuda)
@@ -325,6 +330,8 @@ if __name__ == '__main__':
                         user_map=train.user_map,
                         item_map=train.item_map)
 
+    print("Data pre-processing [%.3f s]" % ((time() - t1) / 1000))
+
     print(config)
     print(model_config)
     # fit model
@@ -334,6 +341,7 @@ if __name__ == '__main__':
                         l2=config.l2,
                         neg_samples=config.neg_samples,
                         model_args=model_config,
-                        use_cuda=config.use_cuda)
+                        use_cuda=config.use_cuda,
+                        eval_per_epoch=config.eval_per_epoch)
 
     model.fit(train, test, verbose=True)

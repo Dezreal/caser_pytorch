@@ -39,7 +39,7 @@ def minibatch(*tensors, **kwargs):
 def shuffle(*arrays, **kwargs):
 
     require_indices = kwargs.get('indices', False)
-
+    a = len(arrays[1])
     if len(set(len(x) for x in arrays)) != 1:
         raise ValueError('All inputs to shuffle must have '
                          'the same length.')
