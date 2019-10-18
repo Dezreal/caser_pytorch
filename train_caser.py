@@ -68,6 +68,11 @@ class Recommender(object):
         self.test_sequence = None
         self._candidate = dict()
 
+        self.time_eval = 0.0
+        self.time_epoch = 0.0
+        self.time_epoch1 = 0.0
+        self.num_eval = 0
+
     @property
     def _initialized(self):
         return self._net is not None
@@ -197,12 +202,26 @@ class Recommender(object):
                                                                                          np.mean(recall[2]),
                                                                                          time() - t2)
                 print(output_str)
+                t3 = time() - t2
+                if (epoch_num == 0) :
+                    self.time_epoch1 = (float) (t2 - t1)
+                else:
+                    self.time_epoch += (float) (t2 - t1)
+
+                self.num_eval+=1
+                self.time_eval += t3
+
             else:
                 output_str = "Epoch %d [%.1f s]\tloss=%.4f [%.1f s]" % (epoch_num + 1,
                                                                         t2 - t1,
                                                                         epoch_loss,
                                                                         time() - t2)
                 print(output_str)
+                if (epoch_num == 0) :
+                    self.time_epoch1 = (float) (t2 - t1)
+                else :
+                    self.time_epoch += (float) (t2 - t1)
+
 
         # torch.save(self._net.state_dict(), "state_dict")
 
@@ -292,14 +311,14 @@ if __name__ == '__main__':
     parser.add_argument('--L', type=int, default=5)
     parser.add_argument('--T', type=int, default=3)
     # train arguments
-    parser.add_argument('--n_iter', type=int, default=20)
+    parser.add_argument('--n_iter', type=int, default=9)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--batch_size', type=int, default=512)
     parser.add_argument('--learning_rate', type=float, default=1e-3)
     parser.add_argument('--l2', type=float, default=1e-6)
     parser.add_argument('--neg_samples', type=int, default=3)
     parser.add_argument('--use_cuda', type=str2bool, default=False)
-    parser.add_argument('--eval_per_epoch', type=int, default=4)
+    parser.add_argument('--eval_per_epoch', type=int, default=3)
 
     config = parser.parse_args()
 
@@ -330,7 +349,8 @@ if __name__ == '__main__':
                         user_map=train.user_map,
                         item_map=train.item_map)
 
-    print("Data pre-processing [%.3f s]" % ((time() - t1) / 1000))
+    td = ((time() - t1) / 1000)
+    print("Data pre-processing [%.3f s]" % td)
 
     print(config)
     print(model_config)
@@ -345,3 +365,5 @@ if __name__ == '__main__':
                         eval_per_epoch=config.eval_per_epoch)
 
     model.fit(train, test, verbose=True)
+    print("data\tepoch1\tepochM\teval\n%.3f\t%.3f\t%.3f\t%.3f\n" %
+          (td, model.time_epoch1, model.time_epoch / (config.n_iter - 1), model.time_eval / model.num_eval))
