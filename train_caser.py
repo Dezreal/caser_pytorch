@@ -306,19 +306,19 @@ class Recommender(object):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # data arguments
-    parser.add_argument('--train_root', type=str, default='datasets/ml1m/debug/train.txt')
-    parser.add_argument('--test_root', type=str, default='datasets/ml1m/debug/test.txt')
+    parser.add_argument('--train_root', type=str, default='datasets/ml1m/test/train.txt')
+    parser.add_argument('--test_root', type=str, default='datasets/ml1m/test/test.txt')
     parser.add_argument('--L', type=int, default=5)
     parser.add_argument('--T', type=int, default=3)
     # train arguments
-    parser.add_argument('--n_iter', type=int, default=9)
+    parser.add_argument('--n_iter', type=int, default=20)
     parser.add_argument('--seed', type=int, default=1234)
     parser.add_argument('--batch_size', type=int, default=512)
     parser.add_argument('--learning_rate', type=float, default=1e-3)
     parser.add_argument('--l2', type=float, default=1e-6)
     parser.add_argument('--neg_samples', type=int, default=3)
     parser.add_argument('--use_cuda', type=str2bool, default=False)
-    parser.add_argument('--eval_per_epoch', type=int, default=3)
+    parser.add_argument('--eval_per_epoch', type=int, default=20)
 
     config = parser.parse_args()
 
@@ -350,7 +350,7 @@ if __name__ == '__main__':
                         item_map=train.item_map)
 
     td = ((time() - t1) / 1000)
-    print("Data pre-processing [%.3f s]" % td)
+    print("Data pre-processing [%.5f s]" % td)
 
     print(config)
     print(model_config)

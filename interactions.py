@@ -37,10 +37,11 @@ class Interactions(object):
 
         user_ids = list()
         item_ids = list()
+        ls = 0
         # read users and items from file
         with open(file_path, 'r') as fin:
             for line in fin:
-                u, i, _ = line.strip().split()
+                u, i, _ = line.strip().split(" ", 2)
                 user_ids.append(u)
                 item_ids.append(i)
 
